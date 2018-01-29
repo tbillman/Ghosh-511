@@ -1,0 +1,76 @@
+---
+title: "STT 511 HW 2"
+author: "Thomas Billman"
+date: "January 29, 2018"
+output: html_document
+---
+#R code for solving problem 3.7
+We begin by reading in the data and finding the means
+```{r data reading}
+tensile.strength<-read.table(file = url("https://raw.githubusercontent.com/tbillman/Ghosh-511/master/Data/tensilestrength.txt"),header=T)
+grp.means <- with(tensile.strength, tapply(TS,MT,mean))
+```
+
+First, we convert each variable to factor
+```{r factoring}
+tensile.strength$MT <- as.factor(tensile.strength$MT)
+tensile.strength$run <- as.factor(tensile.strength$run)
+```
+
+Next, we run the model and find the analysis of variance
+```{r AOV construction}
+tensile.strength.aov <-aov(TS~MT,tensile.strength)
+```
+Testing the hypothesis (based on overall F-test)
+```{r summary}
+summary(tensile.strength.aov)
+```
+
+Extracting the residuals
+```{r residuals}
+aov_residuals <- resid(object=tensile.strength.aov)
+```
+
+Estimating the treatment means
+```{r mean estimation}
+model.tables(tensile.strength.aov)
+```
+
+Package for Fisher LSD comparison
+```{r package installation}
+#install.packages("agricolae") install this if you don't have it
+library("agricolae")
+```
+Test
+```{r Single difference test}
+output<-LSD.test(tensile.strength.aov, "MT")
+output
+```
+
+Tukey's multiple pairwise comparison
+```{r Multiple Difference Test}
+output<-HSD.test(tensile.strength.aov, "MT")
+output
+##(d), (e), and (f)
+opar <- par(mfrow=c(2,2),cex=.8)
+plot(tensile.strength.aov)
+par(opar)
+```
+
+Constructing normal probability plot with theoretical line
+```{r qqplots}
+qqnorm(aov_residuals)
+
+qqline(aov_residuals) 
+```
+
+Specific residual vs predictor plot
+```{r Other residual plots}
+aov_predictor<-fitted(tensile.strength.aov)
+
+plot(aov_predictor,aov_residuals)
+```
+Producing a scatterplot
+```{r General Scatterplot}
+plot(tensile.strength.aov)
+```
