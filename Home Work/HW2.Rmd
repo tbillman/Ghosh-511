@@ -74,3 +74,199 @@ Producing a scatterplot
 ```{r General Scatterplot}
 plot(tensile.strength.aov)
 ```
+
+##Work for problem 3.10
+Read in the data
+```{r}
+cot = cbind(c(rep("A",5), rep("B", 5),
+              rep("C",5), rep("D", 5), rep("E",5)),
+            c(7,7,15,11,9,
+              12,17,12,18,18,
+              14,19,19,18,18,
+              19,25,22,19,23,
+              7,11,10,15,11)
+)
+colnames(cot) = c("group","reading")
+cot = as.data.frame(cot)
+```
+Factoring
+```{r}
+cot$group <- as.factor(cot$group)
+cot$reading <- as.numeric(cot$reading)
+```
+
+Next, we run the model and find the analysis of variance
+```{r AOV2 construction}
+cot.aov <-aov(reading~group,cot)
+```
+Testing the hypothesis (based on overall F-test)
+```{r}
+summary(cot.aov)
+```
+
+Extracting the residuals
+```{r}
+aov_cot_residuals <- resid(object=cot.aov)
+```
+
+Estimating the treatment means
+```{r}
+model.tables(cot.aov)
+```
+
+LSD Comparison Test
+```{r}
+output<-LSD.test(cot.aov, "group")
+output
+```
+
+Tukey's multiple pairwise comparison
+```{r}
+output<-HSD.test(tensile.strength.aov, "MT")
+output
+##(d), (e), and (f)
+opar <- par(mfrow=c(2,2),cex=.8)
+plot(tensile.strength.aov)
+par(opar)
+```
+
+Constructing normal probability plot with theoretical line
+```{r}
+qqnorm(aov_residuals)
+
+qqline(aov_residuals) 
+```
+
+Specific residual vs predictor plot
+```{r}
+aov_predictor<-fitted(tensile.strength.aov)
+
+plot(aov_predictor,aov_residuals)
+```
+Producing a scatterplot
+```{r}
+plot(tensile.strength.aov)
+```
+
+##Work for problem 3.12
+Read in the data
+```{r}
+dose = cbind(c(rep("A",4), rep("B", 4),
+              rep("C",4)),
+            c(24, 28, 37, 30,
+              37, 44, 31, 35,
+              42, 47, 52, 38)
+)
+colnames(dose) = c("dosage","activty")
+dose = as.data.frame(dose)
+```
+Factoring
+```{r}
+dose$dosage <- as.factor(dose$dosage)
+dose$activity <- as.numeric(levels(dose$activty)[as.numeric(dose$activty)])
+```
+
+Next, we run the model and find the analysis of variance
+```{r}
+dose.aov <-aov(activity~dosage,dose)
+```
+Testing the hypothesis (based on overall F-test)
+```{r}
+summary(dose.aov)
+```
+
+Extracting the residuals
+```{r}
+aov_dose_residuals <- resid(object=dose.aov)
+```
+
+Estimating the treatment means
+```{r}
+model.tables(dose.aov)
+```
+
+LSD Comparison Test
+```{r}
+output<-LSD.test(dose.aov, "dosage")
+output
+```
+
+Tukey's multiple pairwise comparison
+```{r}
+output<-HSD.test(tensile.strength.aov, "MT")
+output
+##(d), (e), and (f)
+opar <- par(mfrow=c(2,2),cex=.8)
+plot(tensile.strength.aov)
+par(opar)
+```
+
+Constructing normal probability plot with theoretical line
+```{r}
+qqnorm(aov_residuals)
+
+qqline(aov_residuals) 
+```
+
+Specific residual vs predictor plot
+```{r}
+aov_predictor<-fitted(tensile.strength.aov)
+
+plot(aov_predictor,aov_residuals)
+```
+Producing a scatterplot
+```{r}
+plot(tensile.strength.aov)
+```
+
+
+##Work for problem 3.27
+Read in the data
+```{r}
+catl = cbind(c(rep("A",5), rep("B", 4),
+              rep("C",3), rep("D",4)),
+            c(58.2, 57.2, 58.4, 55.8, 54.9,
+              56.3, 54.5, 57.0, 55.3,
+              50.1, 54.2, 55.4,
+              52.9, 49.9, 50.0, 51.7)
+)
+colnames(catl) = c("catalyst","concentration")
+catl = as.data.frame(catl)
+```
+Factoring
+```{r}
+catl$catalyst <- as.factor(catl$catalyst)
+catl$concentration <- as.numeric(levels(catl$concentration)[as.numeric(catl$concentration)])
+```
+
+Next, we run the model and find the analysis of variance
+```{r}
+catl.aov <-aov(concentration~catalyst,catl)
+```
+Testing the hypothesis (based on overall F-test)
+```{r}
+summary(catl.aov)
+```
+
+Extracting the residuals
+```{r}
+aov_catl_residuals <- resid(object=catl.aov)
+```
+
+Constructing normal probability plot with theoretical line
+```{r}
+qqnorm(aov_catl_residuals)
+
+qqline(aov_catl_residuals) 
+```
+
+Specific residual vs predictor plot
+```{r}
+aov_predictor<-fitted(tensile.strength.aov)
+
+plot(aov_predictor,aov_catl_residuals)
+```
+Confidence Intervals
+```{r}
+confint(catl.aov, level = .99)[1,]
+```
