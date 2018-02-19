@@ -1,0 +1,151 @@
+---
+title: "ICA2-2-14-18.Rmd"
+author: "Thomas Billman"
+date: "February 14, 2018"
+output: html_document
+---
+## Problem 1
+```{r}
+Prob1 <- tempfile()
+cat(file=Prob1, "
+ 1 D 1 1 15.5 
+ 2 B 1 2 33.9 
+ 3 C 1 3 13.2
+ 4 A 1 4 29.1
+ 5 B 2 1 16.3
+ 6 C 2 2 26.6 	
+ 7 A 2 3 19.4 
+ 8 D 2 4 22.8
+ 9 C  3 1  10.8 
+ 10 A 3 2 31.1 
+ 11 D 3 3 17.1 
+ 12 B 3 4 30.3 
+ 13 A 4 1 14.7 
+ 14 D 4 2  34.0 
+ 15 B 4 3 19.7 
+ 16 C 4 4 21.6 ", sep=" ")
+options(scipen=999) # suppressing scientific notation
+
+fe <-read.table(Prob1, header=FALSE, col.names=c("OBS", "Blend", "Driver", "Model","Mpg"))
+fe$Blend <- factor(fe$Blend)
+fe$Model<- factor(fe$Model)
+fe$Driver <- factor(fe$Driver)
+```
+### 1a) How many obervations would have been required in order to include all 3-way combinations of Blend, Model, and Driver?
+
+Given that there are 4 possibilities for Driver, Blend, and Model respectively. It follows that the total number of combinations would be 4 x 4 x 4 or 64 possible combinations. Therefore we would need 64 observations to include all combinations.
+
+
+### 1b) How would you make a square if there was 5 of each variable and we had a 5x5 Latin Square?
+
+```{r}
+Prob1b = as.data.frame(matrix(rep(0,25*5), nrow = 25))
+Prob1b[,1] = 1:25
+Prob1b[,2] = c("A","B","C","D","E",
+               "B","C","D","E","A",
+               "C","D","E","A","B",
+               "D","E","A","B","C",
+               "E","A","B","C","D")
+Prob1b[,3] = gl(5,5)
+Prob1b[,4] = gl(5,1,25)
+Prob1b[,5] = rep("MPG Reading",25)
+colnames(Prob1b) = c("OBS","Blend", "Model", "Driver","Mpg")
+Prob1b$Blend <- factor(Prob1b$Blend)
+Prob1b$Model<- factor(Prob1b$Model)
+Prob1b$Driver <- factor(Prob1b$Driver)
+Prob1b
+```
+### 1c) Is there a difference between 4 drivers? State the hypotheses and conduct the test using $\alpha = .05$.
+
+We start by checking our ANOVA table.
+```{r}
+fe.fit <- lm(Mpg ~ Blend + Model + Driver, data = fe);
+anova(fe.fit)
+```
+Given that we can see how the F value for Driver is greater than .05, we fail to reject that there is a significant difference between the drivers.
+
+##Problem 2 
+```{r}
+Prob2 = as.data.frame(matrix(rep(0,16*4), nrow = 16))
+Prob2[,1] = 1:16
+Prob2[,2] = c("C","D","A","B",
+              "B","C","D","A",
+              "A","B","C","D",
+              "D","A","B","C")
+Prob2[,3] = gl(4,4)
+Prob2[,4] = gl(4,1,16)
+Prob2[,5] = c(10,14,7,8,
+              7,18,11,8,
+              5,10,11,9,
+              10,10,12,14)
+colnames(Prob2) = c("OBS","Assembly.Method", "Operator", "Order","Time")
+Prob2$Assembly.Method <- factor(Prob2$Assembly.Method)
+Prob2
+```
+####2a) Test if there is a difference between the four assembly methods. State the hypotheses and use $\alpha = 5\%$.
+
+```{r}
+P2.fit <- lm(Time ~Assembly.Method + Operator + Order, data = Prob2)
+anova(P2.fit)
+```
+
+This summary shows us that the assembly method had a p value of `r anova(P2.fit)[1,5]` which is less than our $\alpha$ of 5%. Therefore we reject the null hypothesis of $\mu_A = \mu_B = \mu_C = \mu_D$, implying that not all of the means are the same. 
+
+####2b) Obtain the estimates of the treatment effects. 
+```{r}
+sapply(LETTERS[1:4],function(x){
+    mean(Prob2$Time[which(Prob2$Assembly.Method == x)]) -
+    mean(Prob2$Time)
+})
+```
+These are the estimated treatment effects of each of the Assemby methods.  
+
+####2c) Use Tukey's method for pairwise comparison.
+```{r}
+TukeyHSD(aov(P2.fit),conf.level=0.95)$Assembly.Method ; 
+```
+In this case the treatments are the 4 assembly methods. By comparing these there are three tests with an $\alpha$ value less than .05. These tests indicate that $\mu_A \neq \mu_C$ , $\mu_A \neq \mu_D$ , and $\mu_B \neq \mu_C$. The rest of the hypotheses do not have enough evidence to suggest the means are not equal.
+
+###2d) Check Model Adequacy. Provide a clear justification to each of your claims.
+
+```{r}
+plot(aov(P2.fit))
+```
+
+Given the small data set, these plots seem to be strong enough evidence to infer that the data is homostedastic, normally disributed, and that individual readings are independent from one another.
+
+##Problem 3
+```{r}
+am<- data.frame(
+    yield=c(11,14,14,8,
+            8,12,10,12,
+            9,11,7,15,
+            9,8,18,6),
+    methods=factor(c("C","B","D","A",
+                     "B","C","A","D",
+                     "A","D","B","C",
+                     "D","A","C","B")),
+    workplace=factor(c("beta", "gamma", "delta", "alpha",
+                       "alpha", "delta", "gamma", "beta",
+                       "delta", "alpha", "beta", "gamma",
+                       "gamma", "beta", "alpha","delta")),
+    order=gl(4,4), 
+    operator=gl(4,1,16))
+sapply(am, class)
+```
+###3a) What design is employed in this experiment? Why?
+
+This design is a Graeco-Latin square design. This is because it has 4 sources of variablility it wants to independently control for simultaneously. This can not be accomplished with any of the other designs we have discussed so far in the course.
+
+###3b) Test if the four assembly methods are differed. Use $\alpha = 5\%$.
+
+```{r}
+am.lm <- lm(yield ~ ., data=am)
+anova(am.lm)
+```
+Given that the P value for the methods is shown as `r anova(am.lm)[1,5]` which is greater than our $\alpha$ of .05. We fail to reject our initial hypothesis of $\mu_A = \mu_B = \mu_C = \mu_D$. 
+
+###3c) Is your conclusion consistent with that from Problem 1? If your answer is no, what are the possible causes for the inconsistency?
+
+Our result is inconsistent with Problem 1. Since we are trying to control for work place as well, it takes some of the degrees of freedom from the residuals. In this case, the amount of variablility explained by workplace was not more than half of the sum of squared errors when workplace was not controlled for. Due to this, the Mean Squared Error rose along with our P value. The P value rose to the point where it is no longer significant.
+

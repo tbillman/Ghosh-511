@@ -1,0 +1,35 @@
+---
+title: "Homework 4"
+author: "Thomas Billman"
+date: "February 19, 2018"
+output: html_document
+---
+##Problem 4.22
+We begin by constructing our dataset
+```{r}
+Prob422 = as.data.frame(matrix(rep(0,25*5), nrow = 25))
+Prob422[,1] = 1:25
+Prob422[,2] = c("A","B","D","C","E",
+               "C","E","A","D","B",
+               "B","A","C","E","D",
+               "D","C","E","B","A",
+               "E","D","B","A","C")
+Prob422[,3] = gl(5,5)
+Prob422[,4] = gl(5,1,25)
+Prob422[,5] = c(8,7,1,7,3,
+                11,2,7,3,8,
+                4,9,10,1,5,
+                6,8,6,6,10,
+                4,2,3,8,8)
+colnames(Prob422) = c("OBS","Ingredient", "Batch", "Day","Reaction.Time")
+Prob422$Ingredient <- factor(Prob422$Ingredient)
+Prob422$Batch <- factor(Prob422$Batch)
+Prob422$Day <- factor(Prob422$Day)
+Prob422
+```
+
+Looking at the analysis.
+```{r}
+prob422.lm <- lm(Reaction.Time ~ Ingredient + Batch + Day, data = Prob422)
+anova(prob422.lm)
+```
