@@ -10,10 +10,10 @@ We begin by constructing our dataset
 Prob422 = as.data.frame(matrix(rep(0,25*5), nrow = 25))
 Prob422[,1] = 1:25
 Prob422[,2] = c("A","B","D","C","E",
-               "C","E","A","D","B",
-               "B","A","C","E","D",
-               "D","C","E","B","A",
-               "E","D","B","A","C")
+                "C","E","A","D","B",
+                "B","A","C","E","D",
+                "D","C","E","B","A",
+                "E","D","B","A","C")
 Prob422[,3] = gl(5,5)
 Prob422[,4] = gl(5,1,25)
 Prob422[,5] = c(8,7,1,7,3,
@@ -28,8 +28,166 @@ Prob422$Day <- factor(Prob422$Day)
 Prob422
 ```
 
-Looking at the analysis.
+###Analysis
 ```{r}
 prob422.lm <- lm(Reaction.Time ~ Ingredient + Batch + Day, data = Prob422)
 anova(prob422.lm)
 ```
+
+Given that the P value for ingredient is `r anova(prob422.lm)[1,5]`, which is less than our $\alpha$ of .05. There for we reject our $H_o : \tau_A = \tau_B = \tau_C = \tau_D = \tau_E$ and infer that there exists at least one inequality amongst the treatment effects for ingredient.
+
+###Assumption Checking
+It is also worth checking to confirm that the assumptions behind this test are met by our data.
+```{r}
+plot(aov(prob422.lm))
+```
+The red line in our Residuals vs Fitted chart is relatively flat and the data seems to have a relatively constant width centered around 0, which indicates normally distributed data and homoscedasticity. This is further confirmed by how the data closely follows the dotted line in the Q-Q plot. Our only concern is that the kurtosis of our distribution may be higher than that of a normal distribution based on the behavior of the data near the ends of the plot. Additionally by checking the Residuals vs Factor Levels, we can confirm the independence of data with respect to the other data points.
+
+##Problem 4.23
+We begin by constructing our dataset
+```{r}
+p = 4
+Prob423 = as.data.frame(matrix(rep(0,p^2 * 5), nrow = p^2))
+Prob423[,1] = 1:(p^2)
+Prob423[,2] = c("C","D","A","B",
+                "B","C","D","A",
+                "A","B","C","D",
+                "D","A","B","C")
+Prob423[,3] = gl(p,p)
+Prob423[,4] = gl(p,1,p^2)
+Prob423[,5] = c(10,14,7,8,
+                7,18,11,8,
+                5,10,11,9,
+                10,10,12,14)
+colnames(Prob423) = c("OBS","AM", "Order", "Operator","Time")
+Prob423$AM <- factor(Prob423$AM)
+Prob423$Order <- factor(Prob423$Order)
+Prob423$Operator <- factor(Prob423$Operator)
+Prob423
+```
+
+###Analysis
+```{r}
+prob423.lm <- lm(Time ~ AM + Order + Operator, data = Prob423)
+anova(prob423.lm)
+```
+
+Given that the P value for Assembly Method (AM) is `r anova(prob423.lm)[1,5]`, which is less than our $\alpha$ of .05. There for we reject our $H_o : \tau_A = \tau_B = \tau_C = \tau_D$ and infer that there exists at least one inequality amongst the treatment effects for ingredient.
+
+###Assumption Checking
+It is also worth checking to confirm that the assumptions behind this test are met by our data.
+```{r}
+plot(aov(prob423.lm))
+```
+The red line in our Residuals vs Fitted chart is relatively flat and the data seems to have a relatively constant width centered around 0 with the exception of the two ends. This is only because of two influential points, and given how small our data size is, I think this graph still indicates a normal distribution  and homoscedasticity in our data. This is further confirmed by how the data closely follows the dotted line in the Q-Q plot. Again, there is some error, but  this is reasonable in small data sets. Additionally by checking the Residuals vs Factor Levels, we can confirm the independence of data with respect to the other data points based on how the red line is similar to a flat line at Standatdized residuals = 0.
+
+##Problem 4.30
+####The Model
+The model for a pxp Latin Square experiment would look like :  
+$y_{ijk} = \mu + \alpha_i + \tau_j + \beta_k + \epsilon_{ijk}$ for $i,j,k \in 1...p$ such that $\alpha_i$ is the $i^{th}$ row effect,
+$\tau_j$ is the $j^{th}$ treatment effect,
+$\beta_k$ is the $k^{th}$ column effect,
+and $\epsilon_{ijk}$ is that element's error effect.  
+
+####Sum of Squared Errors
+
+We begin by looking at the sum of squared errors, which we will call $\Delta$. 
+We know that $\Delta = \sum_{i = 1}^{p} \sum_{j = 1}^{p} \sum_{k = 1}^{p} (y_{ijk} - \hat{\mu} - \hat{\alpha_i} - \hat{\tau_j} - \hat{\beta_k})^2$  
+
+####Partial Differentials
+By setting $\frac{\delta\Delta}{\delta\hat{\mu}} = 0$, we replace $\frac{\delta\Delta}{\delta\hat{\mu}}$ with 
+$(-2)\sum_{i = 1}^{p} \sum_{j = 1}^{p} \sum_{k = 1}^{p} (y_{ijk} - \hat{\mu} - \hat{\alpha_i} - \hat{\tau_j} - \hat{\beta_k})$  
+And so $\sum_{i = 1}^{p} \sum_{j = 1}^{p} \sum_{k = 1}^{p} y_{ijk} = p^2\hat{\mu} + p\sum_{i=1}^p \hat{\alpha_i} + p\sum_{j=1}^p \hat{\tau_i} + p\sum_{k=1}^p \hat{\beta_k}$
+
+Similarly $\frac{\delta\Delta}{\delta\hat{\alpha_i}} = 0$ yields:  
+$\sum_{j = 1}^{p} \sum_{k = 1}^{p} y_{ijk} = p\hat{\mu} + p\hat{\alpha_i} + p\sum_{j=1}^p \hat{\tau_j} + p\sum_{k=1}^p \hat{\beta_k}$
+  
+With $\frac{\delta\Delta}{\delta\hat{\beta_k}} = 0$ giving us:  
+$\sum_{i = 1}^{p} \sum_{j = 1}^{p} y_{ijk} = p\hat{\mu} + p\sum_{i=1}^p \hat{\alpha_i} + p\sum_{j=1}^p \hat{\tau_j} + p\hat{\beta_k}$ 
+  
+And $\frac{\delta\Delta}{\delta\hat{\tau_j}} = 0$ giving us:  
+$\sum_{i = 1}^{p} \sum_{k = 1}^{p} y_{ijk} = p\hat{\mu} + p\sum_{i=1}^p \hat{\alpha_i} + p\hat{\tau_j} + p\sum_{k=1}^p \hat{\beta_k}$ 
+  
+####Results
+This yields $3p+1$ equations since there are p for the each of the rows, column, and treatments with one extra to solve for $\hat{\mu}$. There are also $3p+1$ unknowns. We also need to satisfy the condition that $\sum_{i=1}^p \hat{\alpha_i} = \sum_{j=1}^p \hat{\tau_j} = \sum_{k=1}^p \hat{\beta_k} = 0$.
+  
+So from our earlier equations derived with the partial differential equations, our solutions are as follows:  
+  
+$\hat{\mu} = \frac{1}{p^2}\sum_{i = 1}^{p} \sum_{j = 1}^{p} \sum_{k = 1}^{p} y_{ijk} = \bar{y_{...}}$  
+$\hat{\alpha_i} = \frac{1}{p} (\sum_{j=1}^p \sum_{k = 1}^{p} y_{ijk}) - \bar{y_{...}} = \bar{y_{i..}} - \bar{y_{...}}$  
+$\hat{\tau_j} = \frac{1}{p} (\sum_{i=1}^p \sum_{k = 1}^{p} y_{ijk}) - \bar{y_{...}} = \bar{y_{.j.}} - \bar{y_{...}}$  
+$\hat{\beta_k} = \frac{1}{p} (\sum_{i=1}^p \sum_{j = 1}^{p} y_{ijk}) - \bar{y_{...}} = \bar{y_{..k}} - \bar{y_{...}}$  
+
+
+
+##Problem 4.32
+This is for a design with multiple latin squares. We use the index h to distinguish betwen the different squares.
+  
+####4.32a)Normal Equations and Parameter Estimation
+An appropriate model for this design would be $y_{ijkh} = \mu + \rho_h + \alpha_{i(h)} + \tau_j + \beta_{k(h)} + (\tau\rho)_{jh} + \epsilon_{ijkh}$ with $i,j,k \in 1...p$ and $h \in i1...n$. Also note that $\alpha_{i(h)}$ and $\beta_{k(h)}$ are the row and column effects in the $h^{th}$ square and $(\tau\rho)_{jh}$ is the interaction between the treatments and the squares. 
+####Model
+We begin by looking at the sum of squared errors, which we will call $\Delta$. 
+We know that $\Delta = \sum_{i = 1}^{p} \sum_{j = 1}^{p} \sum_{k = 1}^{p} \sum_{h = 1}^{n} (y_{ijkh} -  \hat{\mu} - \hat{\rho_h} - \hat{\alpha_{i(h)}} - \hat{\tau_j} - \hat{\beta_{k(h)}} - (\hat{\tau\rho_{jh}}))^2$  
+
+####Partial Differentials
+Our normal equations will be $\frac{\delta\Delta}{\delta x}$ for $x \in \{\hat{\mu},\hat{\rho_h},\hat{\alpha_{i(h)}},\hat{\tau_j}, \hat{\beta_{k(h)}}, (\hat{\tau\rho_{jh}})\}$  
+
+From $\frac{\delta\Delta}{\delta \hat{\mu}} = 0$ we find:  
+$0 = (-2)[\sum_{i = 1}^{p} \sum_{j = 1}^{p} \sum_{k = 1}^{p} \sum_{h = 1}^{n} y_{ijkh} -  np^2\hat{\mu} - p^3 \sum_{h=1}^n \hat{\rho_h} - p^2 \sum_{i = 1}^{p} \sum_{h = 1}^{n} \hat{\alpha_{i(h)}} - np^2 \sum_{j = 1}^{p} \hat{\tau_j} - p^2 \sum_{k = 1}^{p} \sum_{h = 1}^{n} \hat{\beta_{k(h)}} - p^2 \sum_{j = 1}^{p} \sum_{h = 1}^{n} (\hat{\tau\rho_{jh}})]$  
+  
+####Results
+Given the restrictions that the sum of these parameters over their first index= 0 $\forall h$, except for $(\hat{\tau}\rho)_{jh}$ which is summed over h and is 0 $\forall j$. This gives us that:  
+$\hat{\mu} = \frac{1}{np^2} \sum_{i,j,k,h} y_{ijkh} = \bar{y_{....}}$  
+
+It also follows that:  
+$\hat{\rho_h} = \bar{y_{...h}} - \bar{y_{....}}$  
+$\hat{\tau_j} = \bar{y_{.j..}} - \bar{y_{....}}$  
+$\hat{\alpha_{i(h)}} = \bar{y_{i..h}} - \bar{y_{...h}}$  
+$\hat{\beta_{k(h)}} = \bar{y_{..kh}} - \bar{y_{...h}}$  
+$(\hat{\tau}\rho)_{jh} = \bar{y_{.j.h}} - \bar{y_{.j..}} - \bar{y_{...h}} + \bar{y_{....}}$  
+
+###Problem 4.32b)
+This can be found on the third page of the hand out you gave us on 2/19/18.
+
+##Problem 4.36
+We begin by constructing our dataset
+```{r}
+p = 4
+Prob436 = as.data.frame(matrix(rep(0,p^2 * 6), nrow = p^2))
+Prob436[,1] = 1:(p^2)
+Prob436[,2] = c("C","D","A","B",
+                "B","C","D","A",
+                "A","B","C","D",
+                "D","A","B","C")
+Prob436[,3] = gl(p,p)
+Prob436[,4] = gl(p,1,p^2)
+Prob436[,5] = c("b","c","d","a",
+                "a","d","c","b",
+                "d","a","b","c",
+                "c","b","a","d")
+Prob436[,6] = c(10,14,7,8,
+                7,18,11,8,
+                5,10,11,9,
+                10,10,12,14)
+colnames(Prob436) = c("OBS","AM", "Order", "Operator","Workplace","Time")
+Prob436$AM <- factor(Prob436$AM)
+Prob436$Order <- factor(Prob436$Order)
+Prob436$Operator <- factor(Prob436$Operator)
+Prob436$Workplace <- factor(Prob436$Workplace)
+Prob436
+```
+
+###Analysis
+```{r}
+prob436.lm <- lm(Time ~ AM + Order + Operator + Workplace, data = Prob436)
+anova(prob436.lm)
+```
+
+Given that the P value for Assembly Method (AM) is `r anova(prob436.lm)[1,5]`, which is less than our $\alpha$ of .05. There for we reject our $H_o : \tau_A = \tau_B = \tau_C = \tau_D$ and infer that there exists at least one inequality amongst the treatment effects for ingredient.
+
+###Assumption Checking
+It is also worth checking to confirm that the assumptions behind this test are met by our data.
+```{r}
+plot(aov(prob436.lm))
+```
+The red line in our Residuals vs Fitted chart is relatively flat and the data seems to have a relatively constant width centered around 0 with the exception of the two ends. This is only because of two influential points, and given how small our data size is, I think this graph still indicates a normal distribution  and homoscedasticity in our data. This is further confirmed by how the data closely follows the dotted line in the Q-Q plot. Our only concern is that the kurtosis of our distribution may be higher than that of a normal distribution based on the behavior of the data near the ends of the plot. Again, there is some error, but  this is reasonable in small data sets. 
