@@ -4,26 +4,60 @@ author: "Thomas Billman"
 date: "March 21, 2018"
 output: html_document
 ---
+#Problem 1
 ###Reading in the data and performing an initial AOV
 ```{r}
-x<- unlist(read.table(file="Z:/STT\ 511/Data/fertilizer.txt", header = F))
+x<- unlist(read.table(file=url("https://raw.githubusercontent.com/tbillman/Ghosh-511/master/Data/fertilizer.txt"), header = F))
 miss_data<- data.frame(trt=gl(5,1,25),block=gl(5,5,25),x)
 miss_data.aov <- aov(x~block+trt,miss_data)
 miss_data.aov
 ```
+###Part a) Write a linear model for this experiment making sure to explain all terms. You may assume that blocks are fixed.
 
-###Data Imputation
+For this experiment, given that there are treatments and blocks, the model would look like $y_{ij} = \mu + \tau_i + \beta_j + \epsilon_{ij}$ with $i \in 1...5$,
+$j \in 1...5$, and $\epsilon_{ij}$ ~ $N(0,\sigma^2) \forall i,j$. We also assume all $\epsilon_{ij}$ are independent from one another.  
+
+###Part b) Notice that in Block 1 there is a missing observation. Use the technique from the RCBD missing plot technique to impute this missing value. Then, compute the appropriate ANOVA table. Test for the equality of treatments. 
 
 ```{r}
-r<- 5
-b<- 5
-yoo <- sum(x[which(!is.na(x))])
+newdat<- miss_data[which(!is.na(x)),]
+r<- length(levels(newdat$trt))
+b<- length(levels(newdat$block))
+yoo <- sum(newdat$x)
 i <- miss_data[which(is.na(x)),]$trt
 j <- miss_data[which(is.na(x)),]$block
-yio <- sum(miss_data[which(miss_data$trt == i ),]$x[-1])
-yoj <- sum(miss_data[which(miss_data$block == j),]$x[-3])
+yio <- sum(newdat[which(newdat$trt == i ),]$x)
+yoj <- sum(newdat[which(newdat$block == j),]$x)
 a <- (r*yoj + b*yio - yoo)/((b-1)*(r-1))
-sapply(1:5,function(a){
-  mean(miss_data[which(miss_data$block == a),]$x)
-})
 ```
+Therefore we impute our x value as "a" or `r a`. We now sub this into the original data and rerun our ANOVA.
+```{r}
+idat <- miss_data
+idat$x[3] <- a
+lmi <- lm(x ~ block + trt, idat)
+aovi <- anova(lmi)
+aovi
+```
+This shows that since the P value for treatments is `r aovi[2,4]`, which is less than our $\alpha$ of .05. We conclude that there exists at least one difference between the treatment means and reject $H_o: \tau_1 = \tau_2 = \tau_3 = \tau_4 = \tau_5$.
+
+###Part c) Provide all the corrections that need to be considered in theis case regarding the SS(Treatment) and SS(Block) as well as degrees of freedom. 
+
+```{r}
+csst <- (yoj - (r-1)*a)^2/(r*(r-1));csst
+cssb <- (yio - (b-1)*a)^2/(b*(b-1));cssb
+naovi <- aovi
+naovi[3,1] <- 15
+naovi[1,2] <- naovi[1,2] + cssb
+naovi[2,2] <- naovi[2,2] + csst
+naovi[3,2] <- sum(aovi$`Sum Sq`) - sum(naovi[1:2,2])
+naovi[,3] <- naovi[,2]/naovi[,1]
+for (q in 1:2){
+  naovi[q,4] <- naovi[q,3]/naovi[3,3]
+  naovi[q,5] <- pf(naovi[q,4], naovi[q,1], sum(naovi[,1]), lower.tail = F)
+}
+naovi
+```
+
+###Part d)
+Add in a paragraph after confirming with Ghosh that this is how the corrections work.
+
