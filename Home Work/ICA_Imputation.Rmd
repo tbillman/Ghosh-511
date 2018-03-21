@@ -1,0 +1,29 @@
+---
+title: "ICA4"
+author: "Thomas Billman"
+date: "March 21, 2018"
+output: html_document
+---
+###Reading in the data and performing an initial AOV
+```{r}
+x<- unlist(read.table(file="Z:/STT\ 511/Data/fertilizer.txt", header = F))
+miss_data<- data.frame(trt=gl(5,1,25),block=gl(5,5,25),x)
+miss_data.aov <- aov(x~block+trt,miss_data)
+miss_data.aov
+```
+
+###Data Imputation
+
+```{r}
+r<- 5
+b<- 5
+yoo <- sum(x[which(!is.na(x))])
+i <- miss_data[which(is.na(x)),]$trt
+j <- miss_data[which(is.na(x)),]$block
+yio <- sum(miss_data[which(miss_data$trt == i ),]$x[-1])
+yoj <- sum(miss_data[which(miss_data$block == j),]$x[-3])
+a <- (r*yoj + b*yio - yoo)/((b-1)*(r-1))
+sapply(1:5,function(a){
+  mean(miss_data[which(miss_data$block == a),]$x)
+})
+```

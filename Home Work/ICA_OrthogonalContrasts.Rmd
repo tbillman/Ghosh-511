@@ -1,0 +1,149 @@
+---
+title: "ICA Orthogonal Contrasts"
+author: "Thomas Billman"
+date: "March 16, 2018"
+output: html_document
+---
+#Problem 1
+###Reading in Data
+```{r Reading in Data}
+dat <- c(2.04
+, 1.91
+, 2.00
+, 1.92
+, 1.85
+, 1.96
+, 1.88
+, 1.90
+, 1.66
+, 1.71
+, 1.42
+, 1.76
+, 1.66
+, 1.61
+, 1.55
+, 1.66
+, 1.53
+, 1.54
+, 1.38
+, 1.31
+, 1.35
+, 1.27
+, 1.26
+, 1.38
+, 1.15
+, 1.22
+, 1.17
+, 1.16
+, 1.21
+, 1.28
+, 1.17
+, 1.26
+, 0.83
+, 1.08
+, 1.02
+, 1.09
+, 1.06)
+lev <- factor(c(gl(3,8),rep(4,7), rep(5,6)))
+```
+
+We also have to source our orthogonal contrast functions
+```{r Source}
+source("http://people.stat.sc.edu/hansont/stat506/cfcdae.R") 
+```
+
+###Initial Analysis
+```{r}
+lm1 <- lm(dat~lev)
+anova(lm1)
+```
+
+###Contrasts
+```{r}
+A <- matrix(c(1,-1,0,0,0,
+              0,0,1,-1,0,
+              0,1,-1,0,0), ncol = 3, byrow = F)
+A
+linear.contrast(lm1,lev,A, jointF = T)
+```
+
+Given that at least one of the comparisons between means one through four are significant, we reject that the null hypothesis of $\mu_1 = \mu_2 = \mu_3 = \mu_4$. This is also true of the corresponding joint F test between our different hypotheses we constructed as the columns of our A matrix.
+
+```{r}
+linear.contrast(lm1,lev, c(.25,.25,.25,.25,-1))
+```
+
+Given that the P value for this linear contrast is well below .05, we reject our null hypothesis of : $H_0: \frac{\mu_1 + \mu_2 + \mu_3 + \mu_4}{4} - \mu_5 = 0$
+
+```{r}
+B <- matrix(c(1,-1,0,0,0,
+              0,0,1,-1,0,
+              0,1,-1,0,0,
+              .25,.25,.25,.25,-1), ncol = 4, byrow = F)
+B
+linear.contrast(lm1,lev,B, jointF = T)
+```
+This analysis demonstrates the joint F value for the two contrasts. Since, the P value is well below .05, we determine that at least one of them needs to be rejected.
+
+#Problem 2
+###Question:
+Let us suppose we have 5 treatments of an experiment. Namely, $\tau_i$ for $i \in 1...5$, From this create at least two linear contrasts such that: (a) they are pairwise orthogonal; and (b) they are not orthogonal. Be sure to justify your choise with all the details.  
+  
+###Part (a)
+One pair of linear contrasts that would be pairwise orthogonal would be $\tau_1 = \tau_2$ and $\tau_3 = \tau_4$, this would let $c_i = \{1,-1,0,0,0\}$ and $d_i = \{0,0,1,-1,0\}$. Therefore both $c_i$ and $d_i$ are orthogonal because, $\sum_{i=1}^5 c_i = \sum_{i=1}^5 d_i = 0$. We also conclude that they are pairwise orthogonal because $\sum_{i=1}^5 c_i d_i = 0+0+0+0+0 = 0$
+
+###Part (b)
+One pair of linear contrasts that would NOT be pairwise orthogonal would be $\tau_1 = \tau_2$ and $\tau_2 = \tau_3$, this would let $c_i = \{1,-1,0,0,0\}$ and $d_i = \{0,1,-1,0,0\}$. Therefore both $c_i$ and $d_i$ are orthogonal because, $\sum_{i=1}^5 c_i = \sum_{i=1}^5 d_i = 0$. However, we also conclude that they are NOT pairwise orthogonal because $\sum_{i=1}^5 c_i d_i = 0+-1+0+0+0 = -1\neq0$.
+
+#Problem 3
+###Question:
+Suppose, we have the following data set regarding to an industrial process with 4 operators and their strength in coninuing their work (in some appropriate measuring environment):
+```{r}
+strength=c(7.3550, 7.5900, 7.7750, 6.2350, 7.0000, 6.7900, 7.6250, 5.7975, 8.1050, 8.3600, 8.0100, 8.2675)
+oper=gl(4,3)
+```
+Then,  
+
+<ul>  
+<li> Conduct separate tests (using the idea on linear contrast) for the following two sets of null hypotheses: $H_0: \mu_2 = \mu_3 = \mu_4$ and $H_0: \frac{\mu_1 + \mu_2 + \mu_3}{3} - \mu_4 = 0$ at the 5% level of significance. In other words, test that the contrast is zero. Provide the estimates for each of the contrasts associated with those two null hypotheses. </li>
+<li> Conduct a joint F-test.</li>
+</ul>
+
+###Answer:
+We begin by constructing a linear model to find the treatment effects and means of the different operators.
+```{r}
+lm2 <- lm(strength ~ oper)
+anova(lm2)
+```
+
+###Contrasts
+We can break down $\mu_2 = \mu_3 = \mu_4$ as the two pairwise comparisons of $\mu_2 = \mu_3$ and $\mu_3 = \mu_4$. This allows us to construct a matrix for comparison between these two constrasts.
+```{r}
+C <- matrix(c(0,1,-1,0,
+              0,0,1,-1), ncol = 2, byrow = F)
+C
+lc1 <- linear.contrast(lm2, oper, C, jointF = T)
+lc1
+```
+
+Given that the p value for the F test was `r lc1$Ftest[1,4]` which is not less than our $\alpha$ of .05, we fail to reject the null hypothesis of $\mu_2 = \mu_3 = \mu_4$.  
+  
+###Other Hypothesis
+For our second null hypothesis of $H_0: \frac{\mu_1 + \mu_2 + \mu_3}{3} - \mu_4 = 0$, we test the contrast with the following code:  
+```{r}
+lc2 <- linear.contrast(lm2, oper, c(rep(1/3,3),-1))
+lc2
+```
+Given that the p value for the F test was `r lc2[1,4]` which is less than our $\alpha$ of .05, we reject the null hypothesis of $\frac{\mu_1 + \mu_2 + \mu_3}{3} - \mu_4 = 0$.  
+
+####Joint F Test
+To conduct the Joint F Test between these two null hypotheses, we check construct a set of contrasts from both tests. This is done as follows:
+```{r}
+D <- matrix(c(0,1,-1,0,
+              0,0,1,-1,
+              rep(1/3,3),-1), ncol = 3, byrow = F)
+D
+lc3 <- linear.contrast(lm2, oper, D, jointF = T)
+lc3
+```
+Given that the p value for the F test was `r lc3$Ftest[1,4]` which is greater than our $\alpha$ of .05, we fail to reject the set of hypotheses.
