@@ -1,0 +1,155 @@
+---
+title: "STT511_HW5"
+author: "Thomas Billman"
+date: "April 3, 2018"
+output: html_document
+---
+#Problem 1
+a)
+```{r}
+glycogen <- c(106,101,120,86,123,97,
+              58, 98, 85, 50, 111, 72,
+              103, 84, 100, 88, 110, 91,
+              53, 66, 61, 72, 85, 60)
+trt <- c(rep("A",6),
+         rep("a",6),
+         rep("B",6),
+         rep("b",6))
+rat <- gl(6,1,24)
+df <- data.frame(trt,rat,glycogen)
+mod <- lm(glycogen ~., data = df)
+anv1 <- anova(mod)
+anv1
+hsd <-TukeyHSD(aov(mod))
+```
+The following are the significant pairwise comparisons:
+```{r}
+which(hsd$trt[,4] < .05)
+which(hsd$rat[,4] < .05)
+```
+b)
+Are the contrasts orthogonal?
+```{r}
+a <- c(1,1,-1,-1)
+b <- c(1,-1,1,-1)
+c <- c(1,-1,-1,1)
+sum(a*b)
+sum(a*c)
+sum(b*c)
+```
+Since the sum of all of these products are zero, all of these contrasts are orthogonal to one another.
+
+c)
+```{r}
+tm <-sapply(c("A","a","B","b"), function(x){
+  mean(df$glycogen[which(df$trt == x)])
+})
+n<- 6
+ssdf <- apply(rbind(a,b,c),1, function(x){
+  (sum(x*tm)^2)/((1/n)*sum(x^2))
+})
+mse <- anv1[3,3]
+1-pf(ssdf/mse,1,24-4)
+```
+Since the P values for a and b are less than our $\alpha$ of .05, we reject $H_0$ and $H_1$  
+
+#Problem 2 
+This problem gives us the following information:  
+```{r}
+sst <- 1850
+sstr <- 500
+```
+From here we can imply that 
+```{r}
+sse <- sst - sstr
+```
+
+```{r}
+N <-30
+a<-6
+mstr <- sstr/(a-1)
+mse <- sse/(N-a)
+fval <- mstr/mse
+pf(fval,a-1, N-a, lower.tail = F)
+```
+Given that our pval is greater than $\alpha$ of .05, we can not confirm that there exists at least one difference between the means.  
+
+#Problem 3
+a)
+```{r}
+tm <- c(3,1,0)
+a <- c(-2,3,-1)
+b <- c(1,0,-1)
+c <- c(1,1,1)
+d <- c(3,-2,1)
+sum(a); sum(b); sum(c); sum(d)
+sca <- sum(a*tm)
+scb <- sum(b*tm)
+n<- 9
+mse <- 5
+sea <-sqrt(mse * sum(a*a/n))
+ta <- sca/sea
+2*pt(ta,27-3)
+```
+Given that this value is above our $\alpha$ of .05, we fail to reject this hypothesis. 
+
+b)
+
+our t value will be double the first one
+```{r}
+seb <- sqrt(mse * sum(b*b/n))
+tb <- scb/seb
+2*pt(-tb, 27-3)
+```
+Given that this value is below our $\alpha$ of .05, we reject this hypothesis. 
+
+c)
+```{r}
+scc <- sum(c*tm)
+sec <- sqrt(mse * sum(c*c/n))
+tc <- scc/sec
+2*pt(-tc, 27-3)
+```
+Given that this value is below our $\alpha$ of .05, we reject this hypothesis. 
+
+d)
+```{r}
+scd <- sum(d*tm)
+sed <- sqrt(mse * sum(d*d/n))
+td <- scd/sed
+2*pt(-td, 27-3)
+```
+Given that this value is below our $\alpha$ of .05, we reject this hypothesis. 
+
+ii)
+To be a contrast, the sum of the coefficients on both sides of the equal sign must be equal. This is only true for a) and b)
+
+iii)
+```{r}
+tm <- c(3,1,0)
+a <- c(-2,3,-1)
+b <- c(1,0,-1)
+c <- c(1,1,1)
+d <- c(3,-2,1)
+sum(a); sum(b); sum(c); sum(d)
+sca <- sum(a*tm)
+scb <- sum(b*tm)
+n<- 9
+mse <- 5
+sea <-sqrt(mse * sum(a*a/n))
+sum(a*b)
+```
+given that a and b are the only contrasts and they are not orthogonal, there are not any orthogonal contrasts in this set of linear combinations.
+
+iv)
+This is not the same test. Even though we observed $\mu_3$ to be 0, there is still variability there that needs to be accounted for. The t test statistic for the testing the two hypothesis would need to be different, therefore they are not the same test.
+
+#Problem 4
+Knowing that:  
+$Q_1 = 3\tau_1 - \tau_2 - \tau_3 - \tau_4$
+$Q_2 = 2\tau_2 - \tau_3 - \tau_4$
+$Q_3 = \tau_3 - \tau_4$
+$SSTr = \sum_{i = 1}^{4}(\bar{y}_{i.}-\bar{y}_{..})^2$
+$= \sum_{i = 1}^{4}\bar{y}_{i.}^2 - 4\bar{y}_{..}^2$
+???
+

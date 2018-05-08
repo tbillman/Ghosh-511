@@ -1,0 +1,78 @@
+---
+title: "HW 5"
+author: "Thomas Billman"
+date: "April 18, 2018"
+output: html_document
+---
+#Homework 5
+##Problem 1
+A Factorial Design of Experiments is performed with two factors $A$ and $B$ each run at two levels High and Low. The experiment is replicated three times $(n = 3)$. The data are entered below.
+```{r}
+resp<- c(27,31,18,30,29,33,22,32,26,34,19,29)
+A <- as.factor(rep(c(0,1),6))
+B <- as.factor(rep(c(0,0,1,1),3))
+df1<- data.frame(A,B, resp)
+df1
+gmeans <- unlist(lapply(list(c(0,0),c(1,0),c(0,1),c(1,1)), function(x){
+  sum(df1[which(df1[,1] == x[1] & df1[,2] == x[2]),3])
+}))
+names(gmeans) = c("(1)", "A", "B", "AB")
+gmeans
+```
+Then,  
+
+####i) Estimate the main effects of $A$ and $B$.
+$\hat{A} = \frac{ab + a - b - (1)}{2n} = \frac{91 + 98 - 59 - 82}{6} = 8$
+
+$\hat{B} = \frac{ab + b - a - (1)}{2n} = \frac{91 + 59 - 98 - 82}{6} = -5$
+
+####ii) Estimate the interaction effect $AB$.
+$\hat{AB} = \frac{ab - a - b + (1)}{2n} = \frac{91 - 98 - 59 + 82}{6} = 2.\bar{6}$
+
+####iii) Conduct an appropriate ANOVA for the above data and test the significance of the main effects, and the interaction effects. Discuss the outcome in details. 
+```{r}
+mod1 <- lm(resp ~ A + B + A*B, data=df1)
+anova(mod1)
+```
+The p values of the main effects are both well under a standard $\alpha$ of .05. This leads us to believe that they are significant. The interaction effect has a p value of `r anova(mod1)[3,5]` which is below .05, but not by much. Therefore we should be wary about accepting its significance. 
+
+####iv) Prepare appropriate residual plots and comment of the model's adequacy. 
+```{r}
+p1aov <- aov(mod1)
+plot(p1aov)
+```
+Graphs 1, 2, and 4 have roughly straight lines, indicating that our assumptions are reasonable. However, our Q-Q plot shows that many of the observations are concentrated around the top and bottom of our range. However, this may be due to the factorial design of the experiment. For example, one factor level may be responsible for high response values, and the opposing level may cause low response values.
+
+##Problem 2
+####An article in IEEE Transactions on Electron Edvices (Nov. 1986, pp-1754) describes a study on Polysilicon doping. THe experiment shown below is a variation of their study. The response variable is base current. [Ref: Textbook problem 5.25, page 228]
+```{r}
+doping <- factor(c(rep(1,6), rep(2,6)))
+temp <- factor(rep(c(rep(900,2),rep(950,2), rep(1000,2)),2))
+resp <- c(4.6, 4.4,10.15 ,10.2, 11.01, 10.58,
+          3.2, 3.5, 9.38, 10.02, 10.81, 10.6)
+df2 <- data.frame(doping,temp, resp)
+df2
+```
+####i) Is there evidence (with $\alpha = .05$) indicating either polysilicon doping level or temperature affects base current? Explain with appropriate analysis.
+The appropriate analysis for this would be an ANOVA table.
+```{r}
+mod2 <- lm(resp ~ doping + temp, data = df2)
+anova(mod2)
+```
+This anova table shows that both doping and temperature have an effect on base current because `r anova(mod2)[1,5]` and `r anova(mod2)[2,5]` are both below .05.  
+To graphically check our assumptions:
+```{r}
+aov2 <- aov(mod2)
+plot(aov2)
+```
+  
+Similar to the last probelm, our Q-Q plot has a high number of high and low observations, but again this can likely be contributed to the significance of the factors. Our plots 1 and 3 look fine, but our plot 4 shows a V shaped curve, which may indicate an interaction effect between the two variables.
+
+##Short answer questions
+####Turned in on paper, but also listed here:  
+####1) A  
+####2) E  
+####3) C  
+####4) C  
+####5) An interaction effect  
+####6) Factorial design  
